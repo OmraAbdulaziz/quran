@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -19,7 +20,7 @@ class NotificationService {
   static const _baseId = 1000;
 
   Future<void> init() async {
-    if (_initialized) return;
+    if (kIsWeb || _initialized) return;
     tzdata.initializeTimeZones();
     final localTz = await FlutterTimezone.getLocalTimezone();
     tz.setLocalLocation(tz.getLocation(localTz));
@@ -55,12 +56,14 @@ class NotificationService {
 
   /// يطلب صلاحية الإشعارات (Android 13+ و iOS).
   Future<bool> requestPermission() async {
+    if (kIsWeb) return false;
     final status = await Permission.notification.request();
     return status.isGranted;
   }
 
   /// يعيد جدولة الإشعارات الأسبوعية بناءً على الإعدادات الحالية.
   Future<void> reschedule(UserSettings s) async {
+    if (kIsWeb) return;
     if (!_initialized) await init();
     await _plugin.cancelAll();
 

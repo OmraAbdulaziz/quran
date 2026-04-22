@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:sqflite/sqflite.dart';
@@ -18,10 +19,16 @@ class AppDatabase {
     if (override != null) {
       db = override;
     } else {
-      final dir = await getApplicationDocumentsDirectory();
-      final path = p.join(dir.path, 'quran_tracker.db');
+      final String dbPath;
+      if (kIsWeb) {
+        // على الويب: اسم منطقي فقط — البيانات تُحفظ في IndexedDB.
+        dbPath = 'quran_tracker.db';
+      } else {
+        final dir = await getApplicationDocumentsDirectory();
+        dbPath = p.join(dir.path, 'quran_tracker.db');
+      }
       db = await openDatabase(
-        path,
+        dbPath,
         version: Migrations.latestVersion,
         onCreate: (d, v) => Migrations.createAll(d),
         onUpgrade: (d, oldV, newV) => Migrations.upgrade(d, oldV, newV),
